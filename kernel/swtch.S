@@ -1,8 +1,8 @@
-# Context switch
+# 上下文切换
 #
 #   void swtch(struct context *old, struct context *new);
-# 
-# Save current registers in old. Load from new.	
+#
+# 将当前寄存器保存到 old。从 new 加载。	
 
 
 .globl swtch

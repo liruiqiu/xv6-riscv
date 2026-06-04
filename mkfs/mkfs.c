@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <assert.h>
 
-#define stat xv6_stat  // avoid clash with host struct stat
+#define stat xv6_stat  // 避免与主机 struct stat 冲突
 #include "kernel/types.h"
 #include "kernel/fs.h"
 #include "kernel/stat.h"
@@ -17,14 +17,14 @@
 
 #define NINODES 200
 
-// Disk layout:
-// [ boot block | sb block | log | inode blocks | free bit map | data blocks ]
+// 磁盘布局：
+// [ 引导块 | 超级块 | 日志 | inode 块 | 空闲位图 | 数据块 ]
 
 int nbitmap = FSSIZE/BPB + 1;
 int ninodeblocks = NINODES / IPB + 1;
-int nlog = LOGBLOCKS+1;   // Header followed by LOGBLOCKS data blocks.
-int nmeta;    // Number of meta blocks (boot, sb, nlog, inode, bitmap)
-int nblocks;  // Number of data blocks
+int nlog = LOGBLOCKS+1;   // 头块后跟 LOGBLOCKS 个数据块。
+int nmeta;    // 元数据块数（引导块、超级块、nlog 块、inode 块、位图块）
+int nblocks;  // 数据块数
 
 int fsfd;
 struct superblock sb;
@@ -42,7 +42,7 @@ uint ialloc(ushort type);
 void iappend(uint inum, void *p, int n);
 void die(const char *);
 
-// convert to riscv byte order
+// 转换为 RISC-V 字节序
 ushort
 xshort(ushort x)
 {
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
   if(fsfd < 0)
     die(argv[1]);
 
-  // 1 fs block = 1 disk sector
+  // 1 个文件系统块 = 1 个磁盘扇区
   nmeta = 2 + nlog + ninodeblocks + nbitmap;
   nblocks = FSSIZE - nmeta;
 
@@ -105,7 +105,7 @@ main(int argc, char *argv[])
   printf("nmeta %d (boot, super, log blocks %u, inode blocks %u, bitmap blocks %u) blocks %d total %d\n",
          nmeta, nlog, ninodeblocks, nbitmap, nblocks, FSSIZE);
 
-  freeblock = nmeta;     // the first free block that we can allocate
+  freeblock = nmeta;     // 第一个可供我们分配的空闲块
 
   for(i = 0; i < FSSIZE; i++)
     wsect(i, zeroes);
@@ -128,22 +128,22 @@ main(int argc, char *argv[])
   iappend(rootino, &de, sizeof(de));
 
   for(i = 2; i < argc; i++){
-    // get rid of "user/"
+    // 去掉 "user/" 前缀
     char *shortname;
     if(strncmp(argv[i], "user/", 5) == 0)
       shortname = argv[i] + 5;
     else
       shortname = argv[i];
-    
+
     assert(index(shortname, '/') == 0);
 
     if((fd = open(argv[i], 0)) < 0)
       die(argv[i]);
 
-    // Skip leading _ in name when writing to file system.
-    // The binaries are named _rm, _cat, etc. to keep the
-    // build operating system from trying to execute them
-    // in place of system binaries like rm and cat.
+    // 写入文件系统时跳过名称中的前导下划线。
+    // 二进制文件被命名为 _rm、_cat 等，以防止
+    // 构建操作系统试图用它们替代
+    // 系统二进制文件如 rm 和 cat。
     if(shortname[0] == '_')
       shortname += 1;
 
@@ -162,7 +162,7 @@ main(int argc, char *argv[])
     close(fd);
   }
 
-  // fix size of root inode dir
+  // 修正根 inode 目录的大小
   rinode(rootino, &din);
   off = xint(din.size);
   off = ((off/BSIZE) + 1) * BSIZE;

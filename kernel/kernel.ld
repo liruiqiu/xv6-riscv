@@ -4,8 +4,8 @@ ENTRY( _entry )
 SECTIONS
 {
   /*
-   * ensure that entry.S / _entry is at 0x80000000,
-   * where qemu's -kernel jumps.
+   * 确保 entry.S / _entry 位于 0x80000000，
+   * 即 qemu 的 -kernel 跳转地址。
    */
   . = 0x80000000;
 
@@ -22,21 +22,21 @@ SECTIONS
 
   .rodata : {
     . = ALIGN(16);
-    *(.srodata .srodata.*) /* do not need to distinguish this from .rodata */
+    *(.srodata .srodata.*) /* 无需与 .rodata 区分 */
     . = ALIGN(16);
     *(.rodata .rodata.*)
   }
 
   .data : {
     . = ALIGN(16);
-    *(.sdata .sdata.*) /* do not need to distinguish this from .data */
+    *(.sdata .sdata.*) /* 无需与 .data 区分 */
     . = ALIGN(16);
     *(.data .data.*)
   }
 
   .bss : {
     . = ALIGN(16);
-    *(.sbss .sbss.*) /* do not need to distinguish this from .bss */
+    *(.sbss .sbss.*) /* 无需与 .bss 区分 */
     . = ALIGN(16);
     *(.bss .bss.*)
   }

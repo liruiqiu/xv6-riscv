@@ -1,5 +1,5 @@
-// Test that fork fails gracefully.
-// Tiny executable so that the limit can be filling the proc table.
+// 测试 fork 在失败时是否能优雅处理。
+// 可执行文件非常小，以便限制能够填满进程表。
 
 #include "kernel/types.h"
 #include "kernel/stat.h"

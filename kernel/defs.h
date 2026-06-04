@@ -9,7 +9,7 @@ struct sleeplock;
 struct stat;
 struct superblock;
 
-// bio.c
+// bio.c —— 缓冲区缓存
 void            binit(void);
 struct buf*     bread(uint, uint);
 void            brelse(struct buf*);
@@ -17,15 +17,15 @@ void            bwrite(struct buf*);
 void            bpin(struct buf*);
 void            bunpin(struct buf*);
 
-// console.c
+// console.c —— 控制台
 void            consoleinit(void);
 void            consoleintr(int);
 void            consputc(int);
 
-// exec.c
+// exec.c —— 程序执行
 int             kexec(char*, char**);
 
-// file.c
+// file.c —— 文件描述符
 struct file*    filealloc(void);
 void            fileclose(struct file*);
 struct file*    filedup(struct file*);
@@ -34,7 +34,7 @@ int             fileread(struct file*, uint64, int n);
 int             filestat(struct file*, uint64 addr);
 int             filewrite(struct file*, uint64, int n);
 
-// fs.c
+// fs.c —— 文件系统
 void            fsinit(int);
 int             dirlink(struct inode*, char*, uint);
 struct inode*   dirlookup(struct inode*, char*, uint*);
@@ -55,29 +55,29 @@ int             writei(struct inode*, int, uint64, uint, uint);
 void            itrunc(struct inode*);
 void            ireclaim(int);
 
-// kalloc.c
+// kalloc.c —— 物理内存分配
 void*           kalloc(void);
 void            kfree(void *);
 void            kinit(void);
 
-// log.c
+// log.c —— 日志层
 void            initlog(int, struct superblock*);
 void            log_write(struct buf*);
 void            begin_op(void);
 void            end_op(void);
 
-// pipe.c
+// pipe.c —— 管道
 int             pipealloc(struct file**, struct file**);
 void            pipeclose(struct pipe*, int);
 int             piperead(struct pipe*, uint64, int);
 int             pipewrite(struct pipe*, uint64, int);
 
-// printf.c
+// printf.c —— 格式化输出
 int             printf(char*, ...) __attribute__ ((format (printf, 1, 2)));
 void            panic(char*) __attribute__((noreturn));
 void            printfinit(void);
 
-// proc.c
+// proc.c —— 进程管理
 int             cpuid(void);
 void            kexit(int);
 int             kfork(void);
@@ -102,10 +102,10 @@ int             either_copyout(int user_dst, uint64 dst, void *src, uint64 len);
 int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 
-// swtch.S
+// swtch.S —— 上下文切换
 void            swtch(struct context*, struct context*);
 
-// spinlock.c
+// spinlock.c —— 自旋锁
 void            acquire(struct spinlock*);
 int             holding(struct spinlock*);
 void            initlock(struct spinlock*, char*);
@@ -113,13 +113,13 @@ void            release(struct spinlock*);
 void            push_off(void);
 void            pop_off(void);
 
-// sleeplock.c
+// sleeplock.c —— 睡眠锁
 void            acquiresleep(struct sleeplock*);
 void            releasesleep(struct sleeplock*);
 int             holdingsleep(struct sleeplock*);
 void            initsleeplock(struct sleeplock*, char*);
 
-// string.c
+// string.c —— 字符串操作
 int             memcmp(const void*, const void*, uint);
 void*           memmove(void*, const void*, uint);
 void*           memset(void*, int, uint);
@@ -128,7 +128,7 @@ int             strlen(const char*);
 int             strncmp(const char*, const char*, uint);
 char*           strncpy(char*, const char*, int);
 
-// syscall.c
+// syscall.c —— 系统调用分发
 void            argint(int, int*);
 int             argstr(int, char*, int);
 void            argaddr(int, uint64 *);
@@ -136,21 +136,21 @@ int             fetchstr(uint64, char*, int);
 int             fetchaddr(uint64, uint64*);
 void            syscall();
 
-// trap.c
+// trap.c —— 陷阱处理
 extern uint     ticks;
 void            trapinit(void);
 void            trapinithart(void);
 extern struct spinlock tickslock;
 void            prepare_return(void);
 
-// uart.c
+// uart.c —— UART 串口驱动
 void            uartinit(void);
 void            uartintr(void);
 void            uartwrite(char [], int);
 void            uartputc_sync(int);
 int             uartgetc(void);
 
-// vm.c
+// vm.c —— 虚拟内存管理
 void            kvminit(void);
 void            kvminithart(void);
 void            kvmmap(pagetable_t, uint64, uint64, uint64, int);
@@ -170,16 +170,16 @@ int             copyinstr(pagetable_t, char *, uint64, uint64);
 int             ismapped(pagetable_t, uint64);
 uint64          vmfault(pagetable_t, uint64, int);
 
-// plic.c
+// plic.c —— 平台级中断控制器
 void            plicinit(void);
 void            plicinithart(void);
 int             plic_claim(void);
 void            plic_complete(int);
 
-// virtio_disk.c
+// virtio_disk.c —— virtio 磁盘驱动
 void            virtio_disk_init(void);
 void            virtio_disk_rw(struct buf *, int);
 void            virtio_disk_intr(void);
 
-// number of elements in fixed-size array
+// 固定大小数组中的元素个数
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

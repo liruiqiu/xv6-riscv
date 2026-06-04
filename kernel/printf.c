@@ -1,5 +1,5 @@
 //
-// formatted console output -- printf, panic.
+// 格式化控制台输出 —— printf, panic。
 //
 
 #include <stdarg.h>
@@ -15,10 +15,10 @@
 #include "defs.h"
 #include "proc.h"
 
-volatile int panicking = 0; // printing a panic message
-volatile int panicked = 0; // spinning forever at end of a panic
+volatile int panicking = 0; // 正在打印 panic 消息
+volatile int panicked = 0; // panic 结束后在此无限循环
 
-// lock to avoid interleaving concurrent printf's.
+// 锁，用于避免并发 printf 输出交错。
 static struct {
   struct spinlock lock;
 } pr;
@@ -59,7 +59,7 @@ printptr(uint64 x)
     consputc(digits[x >> (sizeof(uint64) * 8 - 4)]);
 }
 
-// Print to the console.
+// 打印到控制台。
 int
 printf(char *fmt, ...)
 {
@@ -119,7 +119,7 @@ printf(char *fmt, ...)
     } else if(c0 == 0){
       break;
     } else {
-      // Print unknown % sequence to draw attention.
+      // 打印未知的 % 序列以引起注意。
       consputc('%');
       consputc(c0);
     }
@@ -139,7 +139,7 @@ panic(char *s)
   panicking = 1;
   printf("panic: ");
   printf("%s\n", s);
-  panicked = 1; // freeze uart output from other CPUs
+  panicked = 1; // 冻结其他 CPU 的 uart 输出
   for(;;)
     ;
 }

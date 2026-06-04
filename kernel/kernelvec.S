@@ -1,19 +1,19 @@
         #
-        # interrupts and exceptions while in supervisor
-        # mode come here.
+        # 在 supervisor 模式下发生的中断和异常
+        # 会来到这里。
         #
-        # the current stack is a kernel stack.
-        # push registers, call kerneltrap().
-        # when kerneltrap() returns, restore registers, return.
+        # 当前栈是内核栈。
+        # 保存寄存器，调用 kerneltrap()。
+        # 当 kerneltrap() 返回时，恢复寄存器，返回。
         #
 .globl kerneltrap
 .globl kernelvec
 .align 4
 kernelvec:
-        # make room to save registers.
+        # 腾出空间保存寄存器。
         addi sp, sp, -256
 
-        # save caller-saved registers.
+        # 保存调用者保存寄存器。
         sd ra, 0(sp)
         # sd sp, 8(sp)
         sd gp, 16(sp)
@@ -34,14 +34,14 @@ kernelvec:
         sd t5, 232(sp)
         sd t6, 240(sp)
 
-        # call the C trap handler in trap.c
+        # 调用 trap.c 中的 C 陷阱处理函数
         call kerneltrap
 
-        # restore registers.
+        # 恢复寄存器。
         ld ra, 0(sp)
         # ld sp, 8(sp)
         ld gp, 16(sp)
-        # not tp (contains hartid), in case we moved CPUs
+        # 不恢复 tp（包含 hartid），以防我们被迁移到其他 CPU
         ld t0, 32(sp)
         ld t1, 40(sp)
         ld t2, 48(sp)
@@ -60,5 +60,5 @@ kernelvec:
 
         addi sp, sp, 256
 
-        # return to whatever we were doing in the kernel.
+        # 返回到内核中之前正在执行的代码。
         sret

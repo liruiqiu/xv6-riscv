@@ -1,5 +1,5 @@
 //
-// Support functions for system calls that involve file descriptors.
+// 涉及文件描述符的系统调用的支持函数。
 //
 
 #include "types.h"
@@ -25,7 +25,7 @@ fileinit(void)
   initlock(&ftable.lock, "ftable");
 }
 
-// Allocate a file structure.
+// 分配一个文件结构。
 struct file*
 filealloc(void)
 {
@@ -43,7 +43,7 @@ filealloc(void)
   return 0;
 }
 
-// Increment ref count for file f.
+// 增加文件 f 的引用计数。
 struct file*
 filedup(struct file *f)
 {
@@ -55,7 +55,7 @@ filedup(struct file *f)
   return f;
 }
 
-// Close file f.  (Decrement ref count, close when reaches 0.)
+// 关闭文件 f。（递减引用计数，当计数归零时关闭。）
 void
 fileclose(struct file *f)
 {
@@ -82,8 +82,8 @@ fileclose(struct file *f)
   }
 }
 
-// Get metadata about file f.
-// addr is a user virtual address, pointing to a struct stat.
+// 获取文件 f 的元数据。
+// addr 是用户虚拟地址，指向一个 struct stat。
 int
 filestat(struct file *f, uint64 addr)
 {
@@ -101,8 +101,8 @@ filestat(struct file *f, uint64 addr)
   return -1;
 }
 
-// Read from file f.
-// addr is a user virtual address.
+// 从文件 f 读取。
+// addr 是用户虚拟地址。
 int
 fileread(struct file *f, uint64 addr, int n)
 {
@@ -129,8 +129,8 @@ fileread(struct file *f, uint64 addr, int n)
   return r;
 }
 
-// Write to file f.
-// addr is a user virtual address.
+// 写入文件 f。
+// addr 是用户虚拟地址。
 int
 filewrite(struct file *f, uint64 addr, int n)
 {
@@ -146,10 +146,10 @@ filewrite(struct file *f, uint64 addr, int n)
       return -1;
     ret = devsw[f->major].write(1, addr, n);
   } else if(f->type == FD_INODE){
-    // write a few blocks at a time to avoid exceeding
-    // the maximum log transaction size, including
-    // i-node, indirect block, allocation blocks,
-    // and 2 blocks of slop for non-aligned writes.
+    // 每次写入几个块，避免超出
+    // 最大日志事务大小，包括
+    // inode、间接块、分配块，
+    // 以及非对齐写入所需的 2 个额外块。
     int max = ((MAXOPBLOCKS-1-1-2) / 2) * BSIZE;
     int i = 0;
     while(i < n){
@@ -165,7 +165,7 @@ filewrite(struct file *f, uint64 addr, int n)
       end_op();
 
       if(r != n1){
-        // error from writei
+        // writei 返回错误
         break;
       }
       i += r;

@@ -3,7 +3,7 @@
 #include "kernel/fcntl.h"
 #include "user/user.h"
 
-// Create an orphaned directory and check if test-xv6.py recovers it.
+// 创建一个孤立的目录并检查 test-xv6.py 是否恢复了它。
 
 #define BUFSZ 500
 
@@ -29,6 +29,6 @@ main(int argc, char **argv)
     exit(1);
   }
   printf("wait for kill and reclaim\n");
-  // sit around until killed
+  // 坐等直到被终止
   for(;;) pause(1000);
 }

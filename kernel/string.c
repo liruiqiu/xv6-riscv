@@ -50,7 +50,7 @@ memmove(void *dst, const void *src, uint n)
   return dst;
 }
 
-// memcpy exists to placate GCC.  Use memmove.
+// memcpy 的存在是为了满足 GCC。请使用 memmove。
 void*
 memcpy(void *dst, const void *src, uint n)
 {
@@ -80,7 +80,7 @@ strncpy(char *s, const char *t, int n)
   return os;
 }
 
-// Like strncpy but guaranteed to NUL-terminate.
+// 类似 strncpy，但保证以空字符结尾。
 char*
 safestrcpy(char *s, const char *t, int n)
 {

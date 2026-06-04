@@ -1,7 +1,7 @@
 //
-// File-system system calls.
-// Mostly argument checking, since we don't trust
-// user code, and calls into file.c and fs.c.
+// 文件系统系统调用。
+// 主要是参数检查，因为我们不信任
+// 用户代码，然后调用 file.c 和 fs.c。
 //
 
 #include "types.h"
@@ -16,8 +16,8 @@
 #include "file.h"
 #include "fcntl.h"
 
-// Fetch the nth word-sized system call argument as a file descriptor
-// and return both the descriptor and the corresponding struct file.
+// 以文件描述符形式获取第 n 个字长的系统调用参数，
+// 并返回该描述符及其对应的 struct file。
 static int
 argfd(int n, int *pfd, struct file **pf)
 {
@@ -34,8 +34,8 @@ argfd(int n, int *pfd, struct file **pf)
   return 0;
 }
 
-// Allocate a file descriptor for the given file.
-// Takes over file reference from caller on success.
+// 为给定文件分配一个文件描述符。
+// 成功时接管文件引用。
 static int
 fdalloc(struct file *f)
 {
@@ -111,7 +111,7 @@ uint64
 sys_fstat(void)
 {
   struct file *f;
-  uint64 st; // user pointer to struct stat
+  uint64 st; // 指向 struct stat 的用户指针
 
   argaddr(1, &st);
   if(argfd(0, 0, &f) < 0)
@@ -119,7 +119,7 @@ sys_fstat(void)
   return filestat(f, st);
 }
 
-// Create the path new as a link to the same inode as old.
+// 创建路径 new 作为指向与 old 相同 inode 的链接。
 uint64
 sys_link(void)
 {
@@ -169,7 +169,7 @@ bad:
   return -1;
 }
 
-// Is the directory dp empty except for "." and ".." ?
+// 目录 dp 是否除了 "." 和 ".." 之外为空？
 static int
 isdirempty(struct inode *dp)
 {
@@ -204,7 +204,7 @@ sys_unlink(void)
 
   ilock(dp);
 
-  // Cannot unlink "." or "..".
+  // 不能 unlink "." 或 ".."。
   if(namecmp(name, ".") == 0 || namecmp(name, "..") == 0)
     goto bad;
 
@@ -273,8 +273,8 @@ create(char *path, short type, short major, short minor)
   ip->nlink = 1;
   iupdate(ip);
 
-  if(type == T_DIR){  // Create . and .. entries.
-    // No ip->nlink++ for ".": avoid cyclic ref count.
+  if(type == T_DIR){  // 创建 . 和 .. 目录项。
+    // 不对 "." 执行 ip->nlink++：避免循环引用计数。
     if(dirlink(ip, ".", ip->inum) < 0 || dirlink(ip, "..", dp->inum) < 0)
       goto fail;
   }
@@ -283,8 +283,8 @@ create(char *path, short type, short major, short minor)
     goto fail;
 
   if(type == T_DIR){
-    // now that success is guaranteed:
-    dp->nlink++;  // for ".."
+    // 现在已确保成功：
+    dp->nlink++;  // 为 ".."
     iupdate(dp);
   }
 
@@ -293,7 +293,7 @@ create(char *path, short type, short major, short minor)
   return ip;
 
  fail:
-  // something went wrong. de-allocate ip.
+  // 出错了。释放 ip。
   ip->nlink = 0;
   iupdate(ip);
   iunlockput(ip);
@@ -477,7 +477,7 @@ sys_exec(void)
 uint64
 sys_pipe(void)
 {
-  uint64 fdarray; // user pointer to array of two integers
+  uint64 fdarray; // 指向两个整数的用户数组指针
   struct file *rf, *wf;
   int fd0, fd1;
   struct proc *p = myproc();

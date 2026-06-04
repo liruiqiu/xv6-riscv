@@ -1,6 +1,6 @@
 //
-// driver for qemu's virtio disk device.
-// uses qemu's mmio interface to virtio.
+// qemu virtio 磁盘设备的驱动程序。
+// 通过 qemu 的 mmio 接口访问 virtio。
 //
 // qemu ... -drive file=fs.img,if=none,format=raw,id=x0 -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 //
@@ -16,46 +16,46 @@
 #include "buf.h"
 #include "virtio.h"
 
-// the address of virtio mmio register r.
+// virtio mmio 寄存器 r 的地址。
 #define R(r) ((volatile uint32 *)(VIRTIO0 + (r)))
 
 static struct disk {
-  // a set (not a ring) of DMA descriptors, with which the
-  // driver tells the device where to read and write individual
-  // disk operations. there are NUM descriptors.
-  // most commands consist of a "chain" (a linked list) of a couple of
-  // these descriptors.
+  // 一组（非环形）DMA 描述符，驱动程序通过它们
+  // 告知设备在何处进行单个磁盘操作的
+  // 读和写。共有 NUM 个描述符。
+  // 大多数命令由几个描述符组成的
+  // "链"（链表）构成。
   struct virtq_desc *desc;
 
-  // a ring in which the driver writes descriptor numbers
-  // that the driver would like the device to process.  it only
-  // includes the head descriptor of each chain. the ring has
-  // NUM elements.
+  // 一个环形缓冲区，驱动程序在其中写入
+  // 希望设备处理的描述符编号，仅包含
+  // 每条链的头描述符。该环有
+  // NUM 个元素。
   struct virtq_avail *avail;
 
-  // a ring in which the device writes descriptor numbers that
-  // the device has finished processing (just the head of each chain).
-  // there are NUM used ring entries.
+  // 一个环形缓冲区，设备在其中写入已完成处理的
+  // 描述符编号（仅包含每条链的头描述符）。
+  // 共有 NUM 个已用环条目。
   struct virtq_used *used;
 
-  // our own book-keeping.
-  char free[NUM];  // is a descriptor free?
-  uint16 used_idx; // we've looked this far in used[2..NUM].
+  // 我们自己的记录。
+  char free[NUM];  // 描述符是否空闲？
+  uint16 used_idx; // 我们在 used[2..NUM] 中已检查到此位置。
 
-  // track info about in-flight operations,
-  // for use when completion interrupt arrives.
-  // indexed by first descriptor index of chain.
+  // 跟踪进行中的操作信息，
+  // 供完成中断到达时使用。
+  // 以链的首个描述符索引进行索引。
   struct {
     struct buf *b;
     char status;
   } info[NUM];
 
-  // disk command headers.
-  // one-for-one with descriptors, for convenience.
+  // 磁盘命令头。
+  // 与描述符一一对应，方便使用。
   struct virtio_blk_req ops[NUM];
-  
+
   struct spinlock vdisk_lock;
-  
+
 } disk;
 
 void
@@ -71,19 +71,19 @@ virtio_disk_init(void)
      *R(VIRTIO_MMIO_VENDOR_ID) != 0x554d4551){
     panic("could not find virtio disk");
   }
-  
-  // reset device
+
+  // 复位设备
   *R(VIRTIO_MMIO_STATUS) = status;
 
-  // set ACKNOWLEDGE status bit
+  // 设置 ACKNOWLEDGE 状态位
   status |= VIRTIO_CONFIG_S_ACKNOWLEDGE;
   *R(VIRTIO_MMIO_STATUS) = status;
 
-  // set DRIVER status bit
+  // 设置 DRIVER 状态位
   status |= VIRTIO_CONFIG_S_DRIVER;
   *R(VIRTIO_MMIO_STATUS) = status;
 
-  // negotiate features
+  // 协商特性
   uint64 features = *R(VIRTIO_MMIO_DEVICE_FEATURES);
   features &= ~(1 << VIRTIO_BLK_F_RO);
   features &= ~(1 << VIRTIO_BLK_F_SCSI);
@@ -94,30 +94,30 @@ virtio_disk_init(void)
   features &= ~(1 << VIRTIO_RING_F_INDIRECT_DESC);
   *R(VIRTIO_MMIO_DRIVER_FEATURES) = features;
 
-  // tell device that feature negotiation is complete.
+  // 告知设备特性协商已完成。
   status |= VIRTIO_CONFIG_S_FEATURES_OK;
   *R(VIRTIO_MMIO_STATUS) = status;
 
-  // re-read status to ensure FEATURES_OK is set.
+  // 重新读取状态以确保 FEATURES_OK 已设置。
   status = *R(VIRTIO_MMIO_STATUS);
   if(!(status & VIRTIO_CONFIG_S_FEATURES_OK))
     panic("virtio disk FEATURES_OK unset");
 
-  // initialize queue 0.
+  // 初始化队列 0。
   *R(VIRTIO_MMIO_QUEUE_SEL) = 0;
 
-  // ensure queue 0 is not in use.
+  // 确保队列 0 未被使用。
   if(*R(VIRTIO_MMIO_QUEUE_READY))
     panic("virtio disk should not be ready");
 
-  // check maximum queue size.
+  // 检查最大队列大小。
   uint32 max = *R(VIRTIO_MMIO_QUEUE_NUM_MAX);
   if(max == 0)
     panic("virtio disk has no queue 0");
   if(max < NUM)
     panic("virtio disk max queue too short");
 
-  // allocate and zero queue memory.
+  // 分配并清零队列内存。
   disk.desc = kalloc();
   disk.avail = kalloc();
   disk.used = kalloc();
@@ -127,10 +127,10 @@ virtio_disk_init(void)
   memset(disk.avail, 0, PGSIZE);
   memset(disk.used, 0, PGSIZE);
 
-  // set queue size.
+  // 设置队列大小。
   *R(VIRTIO_MMIO_QUEUE_NUM) = NUM;
 
-  // write physical addresses.
+  // 写入物理地址。
   *R(VIRTIO_MMIO_QUEUE_DESC_LOW) = (uint64)disk.desc;
   *R(VIRTIO_MMIO_QUEUE_DESC_HIGH) = (uint64)disk.desc >> 32;
   *R(VIRTIO_MMIO_DRIVER_DESC_LOW) = (uint64)disk.avail;
@@ -138,21 +138,21 @@ virtio_disk_init(void)
   *R(VIRTIO_MMIO_DEVICE_DESC_LOW) = (uint64)disk.used;
   *R(VIRTIO_MMIO_DEVICE_DESC_HIGH) = (uint64)disk.used >> 32;
 
-  // queue is ready.
+  // 队列已就绪。
   *R(VIRTIO_MMIO_QUEUE_READY) = 0x1;
 
-  // all NUM descriptors start out unused.
+  // 所有 NUM 个描述符初始均未使用。
   for(int i = 0; i < NUM; i++)
     disk.free[i] = 1;
 
-  // tell device we're completely ready.
+  // 告知设备我们已完全就绪。
   status |= VIRTIO_CONFIG_S_DRIVER_OK;
   *R(VIRTIO_MMIO_STATUS) = status;
 
-  // plic.c and trap.c arrange for interrupts from VIRTIO0_IRQ.
+  // plic.c 和 trap.c 负责处理来自 VIRTIO0_IRQ 的中断。
 }
 
-// find a free descriptor, mark it non-free, return its index.
+// 找到一个空闲描述符，标记为非空闲，返回其索引。
 static int
 alloc_desc()
 {
@@ -165,7 +165,7 @@ alloc_desc()
   return -1;
 }
 
-// mark a descriptor as free.
+// 将描述符标记为空闲。
 static void
 free_desc(int i)
 {
@@ -181,7 +181,7 @@ free_desc(int i)
   wakeup(&disk.free[0]);
 }
 
-// free a chain of descriptors.
+// 释放一个描述符链。
 static void
 free_chain(int i)
 {
@@ -196,8 +196,8 @@ free_chain(int i)
   }
 }
 
-// allocate three descriptors (they need not be contiguous).
-// disk transfers always use three descriptors.
+// 分配三个描述符（无需连续）。
+// 磁盘传输总是使用三个描述符。
 static int
 alloc3_desc(int *idx)
 {
@@ -219,11 +219,11 @@ virtio_disk_rw(struct buf *b, int write)
 
   acquire(&disk.vdisk_lock);
 
-  // the spec's Section 5.2 says that legacy block operations use
-  // three descriptors: one for type/reserved/sector, one for the
-  // data, one for a 1-byte status result.
+  // 规范的 5.2 节说明传统块操作使用
+  // 三个描述符：一个用于类型/保留字段/扇区，一个用于
+  // 数据，一个用于 1 字节的状态结果。
 
-  // allocate the three descriptors.
+  // 分配三个描述符。
   int idx[3];
   while(1){
     if(alloc3_desc(idx) == 0) {
@@ -232,15 +232,15 @@ virtio_disk_rw(struct buf *b, int write)
     sleep(&disk.free[0], &disk.vdisk_lock);
   }
 
-  // format the three descriptors.
-  // qemu's virtio-blk.c reads them.
+  // 格式化三个描述符。
+  // qemu 的 virtio-blk.c 会读取它们。
 
   struct virtio_blk_req *buf0 = &disk.ops[idx[0]];
 
   if(write)
-    buf0->type = VIRTIO_BLK_T_OUT; // write the disk
+    buf0->type = VIRTIO_BLK_T_OUT; // 写入磁盘
   else
-    buf0->type = VIRTIO_BLK_T_IN; // read the disk
+    buf0->type = VIRTIO_BLK_T_IN; // 读取磁盘
   buf0->reserved = 0;
   buf0->sector = sector;
 
@@ -252,35 +252,35 @@ virtio_disk_rw(struct buf *b, int write)
   disk.desc[idx[1]].addr = (uint64) b->data;
   disk.desc[idx[1]].len = BSIZE;
   if(write)
-    disk.desc[idx[1]].flags = 0; // device reads b->data
+    disk.desc[idx[1]].flags = 0; // 设备读取 b->data
   else
-    disk.desc[idx[1]].flags = VRING_DESC_F_WRITE; // device writes b->data
+    disk.desc[idx[1]].flags = VRING_DESC_F_WRITE; // 设备写入 b->data
   disk.desc[idx[1]].flags |= VRING_DESC_F_NEXT;
   disk.desc[idx[1]].next = idx[2];
 
-  disk.info[idx[0]].status = 0xff; // device writes 0 on success
+  disk.info[idx[0]].status = 0xff; // 设备在成功时写入 0
   disk.desc[idx[2]].addr = (uint64) &disk.info[idx[0]].status;
   disk.desc[idx[2]].len = 1;
-  disk.desc[idx[2]].flags = VRING_DESC_F_WRITE; // device writes the status
+  disk.desc[idx[2]].flags = VRING_DESC_F_WRITE; // 设备写入状态
   disk.desc[idx[2]].next = 0;
 
-  // record struct buf for virtio_disk_intr().
+  // 为 virtio_disk_intr() 记录 struct buf。
   b->disk = 1;
   disk.info[idx[0]].b = b;
 
-  // tell the device the first index in our chain of descriptors.
+  // 告知设备我们描述符链中的第一个索引。
   disk.avail->ring[disk.avail->idx % NUM] = idx[0];
 
   __sync_synchronize();
 
-  // tell the device another avail ring entry is available.
-  disk.avail->idx += 1; // not % NUM ...
+  // 告知设备有另一个可用环条目可用。
+  disk.avail->idx += 1; // 不是 % NUM ...
 
   __sync_synchronize();
 
-  *R(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value is queue number
+  *R(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // 值为队列编号
 
-  // Wait for virtio_disk_intr() to say request has finished.
+  // 等待 virtio_disk_intr() 通知请求已完成。
   while(b->disk == 1) {
     sleep(b, &disk.vdisk_lock);
   }
@@ -296,18 +296,18 @@ virtio_disk_intr()
 {
   acquire(&disk.vdisk_lock);
 
-  // the device won't raise another interrupt until we tell it
-  // we've seen this interrupt, which the following line does.
-  // this may race with the device writing new entries to
-  // the "used" ring, in which case we may process the new
-  // completion entries in this interrupt, and have nothing to do
-  // in the next interrupt, which is harmless.
+  // 在我们告知设备已看到此中断之前，设备不会
+  // 再次触发中断，下一行代码即完成此任务。
+  // 这可能与设备向"used"环写入新条目
+  // 产生竞争，在这种情况下，我们可能在此中断中
+  // 处理新的完成条目，而下一个中断无事可做，
+  // 这并无危害。
   *R(VIRTIO_MMIO_INTERRUPT_ACK) = *R(VIRTIO_MMIO_INTERRUPT_STATUS) & 0x3;
 
   __sync_synchronize();
 
-  // the device increments disk.used->idx when it
-  // adds an entry to the used ring.
+  // 设备在将条目添加到 used 环时
+  // 递增 disk.used->idx。
 
   while(disk.used_idx != disk.used->idx){
     __sync_synchronize();
@@ -317,7 +317,7 @@ virtio_disk_intr()
       panic("virtio_disk_intr status");
 
     struct buf *b = disk.info[id].b;
-    b->disk = 0;   // disk is done with buf
+    b->disk = 0;   // 磁盘已完成对 buf 的操作
     wakeup(b);
 
     disk.used_idx += 1;

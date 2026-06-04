@@ -3,8 +3,8 @@
 #include "kernel/fcntl.h"
 #include "user/user.h"
 
-// Stress xv6 logging system by having several processes writing
-// concurrently to their own file (e.g., logstress f1 f2 f3 f4)
+// 通过让多个进程并发写入它们自己的文件
+// 来对 xv6 日志系统进行压力测试（例如 logstress f1 f2 f3 f4）
 
 #define BUFSZ 500
 

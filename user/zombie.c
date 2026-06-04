@@ -1,5 +1,5 @@
-// Create a zombie process that
-// must be reparented at exit.
+// 创建一个僵尸进程，它
+// 必须在退出时被重新分配父进程。
 
 #include "kernel/types.h"
 #include "kernel/stat.h"
@@ -9,6 +9,6 @@ int
 main(void)
 {
   if(fork() > 0)
-    pause(5);  // Let child exit before parent.
+    pause(5);  // 让子进程在父进程之前退出。
   exit(0);
 }

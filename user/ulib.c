@@ -6,7 +6,7 @@
 #include "user/user.h"
 
 //
-// wrapper so that it's OK if main() does not call exit().
+// 包装函数，使 main() 即使不调用 exit() 也没问题。
 //
 void
 start(int argc, char **argv)
