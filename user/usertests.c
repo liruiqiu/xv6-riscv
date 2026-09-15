@@ -241,7 +241,8 @@ copyinstr3(char *s)
   }
 }
 
-// 检查内核是否会拒绝读取/写入应用已经归还、不再拥有的用户内存。
+// 检查内核是否会拒绝读取/写入应用已经归还、
+// 不再拥有的用户内存。
 void
 rwsbrk(char *s)
 {
@@ -345,7 +346,8 @@ truncate1(char *s)
 
 // 向一个刚被 truncate 过的打开文件描述符写入。
 // 这会导致在超出文件末尾的偏移量处进行写入。
-// 此类写入在 xv6 上失败（与 POSIX 不同），但至少不会崩溃。
+// 此类写入在 xv6 上失败（与 POSIX 不同），
+// 但至少不会崩溃。
 void
 truncate2(char *s)
 {
@@ -1029,6 +1031,7 @@ forkforkfork(char *s)
 // 先父后子的加锁顺序，导致 exit() 与 init 的 wait()
 // 死锁？也用于触发由于 exit() 释放的 p->parent->lock
 // 与获取时不同而导致的 "panic: release"。
+// it acquired.
 void
 reparent2(char *s)
 {
@@ -1145,7 +1148,8 @@ sharedfd(char *s)
   }
 }
 
-// 四个进程同时写入不同文件，以测试块分配。
+// 四个进程同时写入不同文件，
+// 以测试块分配。
 void
 fourfiles(char *s)
 {
@@ -2293,7 +2297,8 @@ bsstest(char *s)
 }
 
 // 如果参数大于一页，exec 是否返回错误？
-// 还是会在栈下方写入并破坏指令/数据？
+// 还是会在栈下方
+// 写入并破坏指令/数据？
 void
 bigargtest(char *s)
 {
@@ -2498,7 +2503,8 @@ sbrkbugs(char *s)
   if(pid == 0){
     int sz = (uint64) sbrk(0);
     // 将 break 设置在第一页中的某处；
-    // 曾有一个 bug 会错误地释放第一页。
+    // 曾有一个 bug 会错误地
+    // 释放第一页。
     sbrk(-(sz - 3500));
     exit(0);
   }
@@ -2514,7 +2520,8 @@ sbrkbugs(char *s)
     sbrk((10*PGSIZE + 2048) - (uint64)sbrk(0));
 
     // 稍微减小 break，但不足以
-    // 触发页面释放。这曾导致 panic。
+    // 触发页面释放。这曾
+    // 导致 panic。
     sbrk(-10);
 
     exit(0);
@@ -2949,7 +2956,8 @@ badwrite(char *s)
 }
 
 // 测试 exec() 在内存耗尽时的清理代码。
-// 实际上是测试这种情况不会导致 panic。
+// 实际上是测试这种情况
+// 不会导致 panic。
 void
 execout(char *s)
 {
@@ -2968,6 +2976,7 @@ execout(char *s)
       }
 
       // 释放几页，以便 exec() 能有一些进展。
+      // progress.
       for(int i = 0; i < avail; i++)
         sbrk(-PGSIZE);
 
@@ -3020,7 +3029,8 @@ diskfull(char *s)
 
   // 现在没有空闲块了，测试 dirlink()
   // 在无法扩展目录内容时只是失败（不 panic）。
-  // 预期这些文件创建中有一个会失败。
+  // 预期这些文件创建中
+  // 有一个会失败。
   int nzz = 128;
   for(int i = 0; i < nzz; i++){
     char name[32];

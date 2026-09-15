@@ -53,7 +53,8 @@ sys_sbrk(void)
     }
   } else {
     // 为此进程延迟分配内存：增加内存大小但暂不分配物理内存。
-    // 当进程实际使用这块内存时，vmfault() 会分配它。
+    // 当进程实际使用这块内存时，
+    // vmfault() 会分配它。
     if(addr + n < addr)
       return -1;
     if(addr + n > TRAPFRAME)
@@ -95,6 +96,7 @@ sys_kill(void)
 }
 
 // 返回自启动以来发生的时钟中断次数。
+// since start.
 uint64
 sys_uptime(void)
 {

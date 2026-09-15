@@ -433,6 +433,7 @@ scheduler(void)
     // 启用它们以避免在所有进程都在等待时
     // 发生死锁。然后再次关闭它们
     // 以避免中断和 wfi 之间可能的竞争。
+    // and wfi
     intr_on();
     intr_off();
 
